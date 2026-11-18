@@ -72,6 +72,16 @@ jobs:
           npm install
           npm run build
           test -f dist/index.html
+      
+      - name: Include Digital Asset Links
+        run: |
+          mkdir -p "$PROJECT_DIR/dist/.well-known"
+          if [ -f .well-known/assetlinks.json ]; then
+            cp .well-known/assetlinks.json "$PROJECT_DIR/dist/.well-known/assetlinks.json"
+          else
+            echo "assetlinks.json not found"
+            exit 1
+          fi
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
