@@ -1,0 +1,94 @@
+
+name: Deploy ARTALIBAS to Main Domain
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout domain repository
+        uses: actions/checkout@v4
+
+      - name: Checkout Yozora source
+        uses: actions/checkout@v4
+        with:
+          repository: yozora-artalibas/Yozora
+          ref: main
+          path: source
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Extract application ZIP
+        run: |
+          ZIP_FILE=$(find source -type f -iname "yozora-source.zip" -print -quit)
+
+          if [ -z "$ZIP_FILE" ]; then
+            echo "yozora-source.zip tidak ditemukan"
+            exit 1
+          fi
+
+          mkdir -p app
+          unzip -q "$ZIP_FILE" -d app
+
+      - name: Locate application
+        run: |
+          PACKAGE_FILE=$(find app -type f -iname "package.json" -print -quit)
+
+          if [ -z "$PACKAGE_FILE" ]; then
+            echo "package.json tidak ditemukan"
+            exit 1
+          fi
+
+          PROJECT_DIR=$(dirname "$PACKAGE_FILE")
+
+          if [ "$PACKAGE_FILE" != "$PROJECT_DIR/package.json" ]; then
+            cp "$PACKAGE_FILE" "$PROJECT_DIR/package.json"
+          fi
+
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
+
+      - name: Install dependencies and build
+        run: |
+          cd "$PROJECT_DIR"
+          npm install
+          npm run build
+          test -f dist/index.html
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload build artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ${{ env.PROJECT_DIR }}/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
