@@ -1,1 +1,12 @@
-
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "io.github.yozora_artalibas.twa",
+      "sha256_cert_fingerprints": [
+        "43:CC:49:4F:D7:CD:A9:99:D9:5F:A7:D2:53:46:06:9E:95:46:BD:F3:A9:83:76:D1:71:2F:D0:40:FB:F0:EF:5E"
+      ]
+    }
+  }
+]
