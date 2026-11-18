@@ -64,10 +64,11 @@ jobs:
           fi
 
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
-
+          
       - name: Install dependencies and build
         run: |
           cd "$PROJECT_DIR"
+          npm pkg set "devDependencies.esbuild=^0.28.0"
           npm install
           npm run build
           test -f dist/index.html
